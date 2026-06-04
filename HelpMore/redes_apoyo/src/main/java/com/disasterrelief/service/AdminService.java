@@ -5,6 +5,7 @@ import com.disasterrelief.entities.Database;
 import com.disasterrelief.entities.PermanentUser;
 import com.disasterrelief.repository.AdminRepository;
 import com.disasterrelief.repository.FundRepository;
+import com.disasterrelief.service.interfaces.ValidationsServiceIMPL;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -14,19 +15,31 @@ import java.util.Optional;
  * Capa de servicio para la logica de negocio del administrador.
  * Implementa los escenarios del diagrama de secuencia del documento del proyecto.
  */
-public class AdminService {
+public class AdminService  {
 
     private final AdminRepository adminRepo = new AdminRepository();
     private final FundRepository  fundRepo  = new FundRepository();
     private final Database        db        = Database.getInstance();
 
+    //Metodos de  validacion
+    ValidationsServiceIMPL impl = new Validations();
+
+
     /**
-     * Crea y persiste un nuevo administrador territorial.
+     * Crea, verifica y persiste un nuevo administrador territorial.
      */
-    public Admin createAdmin(String name, String zone, String hotlineNumber) {
-        Admin admin = new Admin(name, zone, hotlineNumber);
-        adminRepo.save(admin);
-        return admin;
+    public Admin createAdmin(String name, String zone, String hotlineNumber)throws Exception {
+        try {
+            Admin admin = new Admin(name, zone, hotlineNumber);
+            impl.validateAdmin(admin); //llama al metodo para verificar
+            adminRepo.save(admin);
+            System.out.println("ADMIN GUARDADO CORRECTAMENTE");
+            return admin;
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+            return null;
+        }
+
     }
 
     /**
