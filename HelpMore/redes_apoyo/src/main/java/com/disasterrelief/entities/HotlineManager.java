@@ -11,6 +11,9 @@ public class HotlineManager {
     private String contactNumber;
     private String assignedZone;
 
+    public HotlineManager() {
+    }
+
     public HotlineManager(String contactNumber, String assignedZone) {
         this.contactNumber = contactNumber;
         this.assignedZone  = assignedZone;
@@ -49,6 +52,11 @@ public class HotlineManager {
     public void   setContactNumber(String number)  { this.contactNumber = number; }
     public String getAssignedZone()                { return assignedZone; }
     public void   setAssignedZone(String zone)     { this.assignedZone = zone; }
+
+    public boolean autoValidation(){
+        return contactNumber!=null&&!contactNumber.isEmpty()&&assignedZone!=null&&!assignedZone.isEmpty();
+    }
+
 
     @Override
     public String toString() {

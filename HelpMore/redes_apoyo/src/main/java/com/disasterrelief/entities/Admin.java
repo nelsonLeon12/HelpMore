@@ -85,6 +85,12 @@ public class Admin {
 
     @Override
     public String toString() {
-        return "Admin{id=" + id + ", name='" + name + "', zone='" + zone + "'}";
+        return "Admin{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", zone='" + zone + '\'' +
+                ", hotline=" + hotline +
+                ", fundManager=" + fundManager +
+                '}';
     }
 }
