@@ -22,6 +22,46 @@ public class AdminView {
     }
 
     public void show() {
+        VBox authRoot = new VBox(15);
+        authRoot.setAlignment(Pos.CENTER);
+        authRoot.setPadding(new Insets(40));
+        authRoot.setStyle("-fx-background-color: #1a1a2e;");
+
+        Text titulo = new Text("Acceso Administrador");
+        titulo.setStyle("-fx-fill: #e94560; -fx-font-size: 28px; -fx-font-weight: bold;");
+
+        Text sub = new Text("Ingresa la contrasena de administrador");
+        sub.setStyle("-fx-fill: #aaaaaa; -fx-font-size: 13px;");
+
+        PasswordField passField = new PasswordField();
+        passField.setPromptText("Contrasena");
+        passField.setStyle("-fx-background-color: #16213e; -fx-text-fill: white; -fx-prompt-text-fill: #888; -fx-padding: 10; -fx-font-size: 14px;");
+
+        Label errorLabel = new Label("");
+        errorLabel.setStyle("-fx-text-fill: #e94560; -fx-font-size: 12px;");
+
+        Button btnEntrar = new Button("Entrar");
+        btnEntrar.setMaxWidth(Double.MAX_VALUE);
+        btnEntrar.setStyle("-fx-background-color: #e94560; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10; -fx-cursor: hand;");
+
+        Button btnVolver = new Button("← Volver");
+        btnVolver.setStyle("-fx-background-color: transparent; -fx-text-fill: #aaaaaa; -fx-font-size: 13px; -fx-cursor: hand;");
+
+        btnEntrar.setOnAction(e -> {
+            if (passField.getText().equals("2025")) {
+                mostrarPanel();
+            } else {
+                errorLabel.setText("Contrasena incorrecta.");
+            }
+        });
+
+        btnVolver.setOnAction(e -> stage.getScene().setRoot(new LoginView(stage).getView()));
+
+        authRoot.getChildren().addAll(titulo, sub, passField, errorLabel, btnEntrar, btnVolver);
+        stage.getScene().setRoot(authRoot);
+    }
+
+    private void mostrarPanel() {
         VBox root = new VBox(15);
         root.setAlignment(Pos.CENTER);
         root.setPadding(new Insets(40));
@@ -33,7 +73,6 @@ public class AdminView {
         Label msgLabel = new Label("");
         msgLabel.setStyle("-fx-text-fill: #00ff88; -fx-font-size: 12px;");
 
-        // Activar alerta
         TextField zonaField = new TextField();
         zonaField.setPromptText("Zona de emergencia");
         zonaField.setStyle("-fx-background-color: #16213e; -fx-text-fill: white; -fx-prompt-text-fill: #888; -fx-padding: 10;");
@@ -42,7 +81,7 @@ public class AdminView {
         msgField.setPromptText("Mensaje de alerta");
         msgField.setStyle("-fx-background-color: #16213e; -fx-text-fill: white; -fx-prompt-text-fill: #888; -fx-padding: 10;");
 
-        Button btnAlerta = new Button("🚨 Activar Alerta de Emergencia");
+        Button btnAlerta = new Button("Activar Alerta de Emergencia");
         btnAlerta.setMaxWidth(Double.MAX_VALUE);
         btnAlerta.setStyle("-fx-background-color: #e94560; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10; -fx-cursor: hand;");
 
@@ -50,32 +89,26 @@ public class AdminView {
             try {
                 adminService.activateEmergencyAlert(1, zonaField.getText(), msgField.getText());
                 msgLabel.setStyle("-fx-text-fill: #00ff88;");
-                msgLabel.setText("¡Alerta activada en zona " + zonaField.getText() + "!");
-                zonaField.clear(); msgField.clear();
+                msgLabel.setText("Alerta activada en zona " + zonaField.getText());
+                zonaField.clear();
+                msgField.clear();
             } catch (Exception ex) {
                 msgLabel.setStyle("-fx-text-fill: #e94560;");
                 msgLabel.setText(ex.getMessage());
             }
         });
 
-        // Ver fondos
-        Button btnFondos = new Button("💰 Ver Fondos");
+        Button btnFondos = new Button("Ver Fondos");
         btnFondos.setMaxWidth(Double.MAX_VALUE);
         btnFondos.setStyle("-fx-background-color: #0f3460; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10; -fx-cursor: hand;");
 
         btnFondos.setOnAction(e -> {
-            try {
-                double saldo = adminService.getTotalFundBalance();
-                msgLabel.setStyle("-fx-text-fill: #00ff88;");
-                msgLabel.setText("Saldo total del fondo: $" + saldo);
-            } catch (Exception ex) {
-                msgLabel.setStyle("-fx-text-fill: #e94560;");
-                msgLabel.setText(ex.getMessage());
-            }
+            double saldo = adminService.getTotalFundBalance();
+            msgLabel.setStyle("-fx-text-fill: #00ff88;");
+            msgLabel.setText("Saldo total del fondo: $" + saldo);
         });
 
-        // Ver usuarios
-        Button btnUsuarios = new Button("👥 Ver Usuarios Activos");
+        Button btnUsuarios = new Button("Ver Usuarios Activos");
         btnUsuarios.setMaxWidth(Double.MAX_VALUE);
         btnUsuarios.setStyle("-fx-background-color: #16213e; -fx-text-fill: #aaaaaa; -fx-font-size: 13px; -fx-padding: 10; -fx-cursor: hand;");
 
@@ -83,11 +116,10 @@ public class AdminView {
             StringBuilder sb = new StringBuilder("Usuarios: ");
             userService.getActiveUsers().forEach(u -> sb.append(u.getName()).append(", "));
             msgLabel.setStyle("-fx-text-fill: #00ff88;");
-            msgLabel.setText(sb.toString());
+            msgLabel.setText(sb.length() > 10 ? sb.toString() : "No hay usuarios activos.");
         });
 
-        // Ver ranking
-        Button btnRanking = new Button("🏆 Ver Rankings");
+        Button btnRanking = new Button("Ver Rankings");
         btnRanking.setMaxWidth(Double.MAX_VALUE);
         btnRanking.setStyle("-fx-background-color: #16213e; -fx-text-fill: #aaaaaa; -fx-font-size: 13px; -fx-padding: 10; -fx-cursor: hand;");
         btnRanking.setOnAction(e -> new RankingView(stage, userService).show());
