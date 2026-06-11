@@ -1,5 +1,6 @@
 package com.disasterrelief;
-
+import javafx.scene.layout.HBox;
+import com.disasterrelief.entities.Database;
 import com.disasterrelief.service.AdminService;
 import com.disasterrelief.service.UserService;
 import javafx.geometry.Insets;
@@ -8,6 +9,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import java.util.List;
 
 public class AdminView {
 
@@ -62,6 +64,8 @@ public class AdminView {
     }
 
     private void mostrarPanel() {
+        Database db = Database.getInstance();
+
         VBox root = new VBox(15);
         root.setAlignment(Pos.CENTER);
         root.setPadding(new Insets(40));
@@ -85,13 +89,53 @@ public class AdminView {
         btnAlerta.setMaxWidth(Double.MAX_VALUE);
         btnAlerta.setStyle("-fx-background-color: #e94560; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10; -fx-cursor: hand;");
 
+        Text tituloAlertas = new Text("Alertas Activas:");
+        tituloAlertas.setStyle("-fx-fill: #ffffff; -fx-font-size: 14px; -fx-font-weight: bold;");
+
+        VBox alertasBox = new VBox(8);
+        alertasBox.setPadding(new Insets(10));
+        alertasBox.setStyle("-fx-background-color: #16213e;");
+
+        Runnable[] refrescar = new Runnable[1];
+        refrescar[0] = () -> {
+            alertasBox.getChildren().clear();
+            List<String> alertas = db.getAlertasActivas();
+            if (alertas.isEmpty()) {
+                Label noAlertas = new Label("No hay alertas activas.");
+                noAlertas.setStyle("-fx-text-fill: #aaaaaa; -fx-font-size: 12px;");
+                alertasBox.getChildren().add(noAlertas);
+            } else {
+                for (int i = 0; i < alertas.size(); i++) {
+                    HBox fila = new HBox(10);
+                    fila.setAlignment(Pos.CENTER_LEFT);
+                    Label lblAlerta = new Label(alertas.get(i));
+                    lblAlerta.setStyle("-fx-text-fill: #ffffff; -fx-font-size: 12px;");
+                    lblAlerta.setWrapText(true);
+                    lblAlerta.setMaxWidth(250);
+                    Button btnDesactivar = new Button("Desactivar");
+                    btnDesactivar.setStyle("-fx-background-color: #555555; -fx-text-fill: white; -fx-font-size: 11px; -fx-cursor: hand;");
+                    final int index = i;
+                    btnDesactivar.setOnAction(ev -> {
+                        db.desactivarAlerta(index);
+                        msgLabel.setStyle("-fx-text-fill: #00ff88;");
+                        msgLabel.setText("Alerta desactivada.");
+                        refrescar[0].run();
+                    });
+                    fila.getChildren().addAll(lblAlerta, btnDesactivar);
+                    alertasBox.getChildren().add(fila);
+                }
+            }
+        };
+
         btnAlerta.setOnAction(e -> {
             try {
                 adminService.activateEmergencyAlert(1, zonaField.getText(), msgField.getText());
+                int helpers = userService.getActiveUsers().size();
                 msgLabel.setStyle("-fx-text-fill: #00ff88;");
-                msgLabel.setText("Alerta activada en zona " + zonaField.getText());
+                msgLabel.setText("Alerta activada. Helpers notificados: " + helpers);
                 zonaField.clear();
                 msgField.clear();
+                refrescar[0].run();
             } catch (Exception ex) {
                 msgLabel.setStyle("-fx-text-fill: #e94560;");
                 msgLabel.setText(ex.getMessage());
@@ -101,7 +145,6 @@ public class AdminView {
         Button btnFondos = new Button("Ver Fondos");
         btnFondos.setMaxWidth(Double.MAX_VALUE);
         btnFondos.setStyle("-fx-background-color: #0f3460; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10; -fx-cursor: hand;");
-
         btnFondos.setOnAction(e -> {
             double saldo = adminService.getTotalFundBalance();
             msgLabel.setStyle("-fx-text-fill: #00ff88;");
@@ -111,7 +154,6 @@ public class AdminView {
         Button btnUsuarios = new Button("Ver Usuarios Activos");
         btnUsuarios.setMaxWidth(Double.MAX_VALUE);
         btnUsuarios.setStyle("-fx-background-color: #16213e; -fx-text-fill: #aaaaaa; -fx-font-size: 13px; -fx-padding: 10; -fx-cursor: hand;");
-
         btnUsuarios.setOnAction(e -> {
             StringBuilder sb = new StringBuilder("Usuarios: ");
             userService.getActiveUsers().forEach(u -> sb.append(u.getName()).append(", "));
@@ -128,9 +170,18 @@ public class AdminView {
         btnVolver.setStyle("-fx-background-color: transparent; -fx-text-fill: #aaaaaa; -fx-font-size: 13px; -fx-cursor: hand;");
         btnVolver.setOnAction(e -> stage.getScene().setRoot(new LoginView(stage).getView()));
 
+        ScrollPane scroll = new ScrollPane(alertasBox);
+        scroll.setFitToWidth(true);
+        scroll.setMaxHeight(150);
+        scroll.setStyle("-fx-background: #16213e;");
+
+        refrescar[0].run();
+
         root.getChildren().addAll(
                 titulo, new Separator(),
                 zonaField, msgField, btnAlerta,
+                new Separator(),
+                tituloAlertas, scroll,
                 new Separator(),
                 btnFondos, btnUsuarios, btnRanking,
                 msgLabel, new Separator(),
